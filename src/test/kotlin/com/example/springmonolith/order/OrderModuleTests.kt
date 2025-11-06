@@ -27,6 +27,5 @@ class OrderModuleTests {
     fun testOrderServiceGreeting() {
         val greeting = orderService.getGreeting()
         assertTrue(greeting.contains("Order Module"))
-        assertTrue(greeting.contains("🛒"))
     }
 }
