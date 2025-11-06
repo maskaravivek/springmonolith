@@ -4,5 +4,6 @@
  * order-related operations including order creation, retrieval,
  * and management.
  */
+@org.springframework.modulith.ApplicationModule(allowedDependencies = {})
 @org.springframework.lang.NonNullApi
 package com.example.springmonolith.order;

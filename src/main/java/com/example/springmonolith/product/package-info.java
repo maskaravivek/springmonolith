@@ -4,5 +4,6 @@
  * product-related operations including product creation, retrieval,
  * and inventory management.
  */
+@org.springframework.modulith.ApplicationModule(allowedDependencies = {})
 @org.springframework.lang.NonNullApi
 package com.example.springmonolith.product;
