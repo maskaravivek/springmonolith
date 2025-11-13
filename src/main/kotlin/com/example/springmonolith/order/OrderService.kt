@@ -26,7 +26,7 @@ class OrderService(
      * Place an order and publish an OrderPlaced event.
      * Demonstrates named parameters and a tiny builder-style DSL via trailing lambda in the controller.
      */
-    fun placeOrder(cmd: PlaceOrderCommand): OrderAccepted {
+    fun placeOrder(cmd: PlaceOrderCommand): OrderResult {
         val items = cmd.items
         // Publish an integration event with DTO payload from the shared common package
         events.publishEvent(

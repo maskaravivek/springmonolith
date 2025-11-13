@@ -2,6 +2,7 @@ package com.example.springmonolith.product
 
 import com.example.springmonolith.InventoryEvent
 import com.example.springmonolith.OrderItemDTO
+import com.example.springmonolith.totalQuantity
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 
@@ -14,8 +15,10 @@ class InventoryService(
     private val events: ApplicationEventPublisher
 ) {
     fun reserve(items: List<OrderItemDTO>): Boolean {
-        // Demo logic: fail if any quantity is <= 0; otherwise succeed
-        return items.all { it.quantity > 0 }
+        // Demo logic: all quantities must be > 0 and total must stay under a simple cap
+        val allPositive = items.all { it.quantity > 0 }
+        val total = items.totalQuantity()
+        return allPositive && total <= 1000
     }
 
     fun publishInventoryReserved(orderId: String) {

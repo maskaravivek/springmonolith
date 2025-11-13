@@ -14,12 +14,12 @@ class OrderProcessManager(
 ) {
     @ApplicationModuleListener
     fun onReserved(event: InventoryEvent.InventoryReserved) {
-        repo.updateStatus(event.orderId, OrderStatus.ReadyToShip)
+        repo.updateStatus(event.orderId.asOrderId(), OrderStatus.ReadyToShip)
     }
 
     @ApplicationModuleListener
     fun onFailed(event: InventoryEvent.InventoryFailed) {
-        repo.updateStatus(event.orderId, OrderStatus.Cancelled(reason = event.reason))
+        repo.updateStatus(event.orderId.asOrderId(), OrderStatus.Cancelled(reason = event.reason))
     }
 }
 
@@ -33,11 +33,11 @@ sealed class OrderStatus {
 /** Minimal in-memory repository to demonstrate state changes. */
 @Component
 class OrderRepository {
-    private val state: MutableMap<String, OrderStatus> = mutableMapOf()
+    private val state: MutableMap<OrderId, OrderStatus> = mutableMapOf()
 
-    fun updateStatus(orderId: String, status: OrderStatus) {
+    fun updateStatus(orderId: OrderId, status: OrderStatus) {
         state[orderId] = status
     }
 
-    fun statusOf(orderId: String): OrderStatus? = state[orderId]
+    fun statusOf(orderId: OrderId): OrderStatus? = state[orderId]
 }

@@ -90,17 +90,70 @@ We also documented the refactor in long-form notes:
 
 ## Kotlin features used (and why developers might care)
 
-We didn’t just change wiring — we used Kotlin to make the model expressive and safe:
+We didn’t just change wiring — we leaned on Kotlin’s language features to keep the code compact, type‑safe, and readable.
 
-- Data classes for event payloads: `OrderPlaced`, `OrderItemDTO`, and `InventoryEvent` are concise and immutable by default.
-- Sealed classes for finite state: `InventoryEvent` and `OrderStatus` model a closed set of possibilities. Consumers can exhaustively `when`-match without `else`.
-- Named parameters for clarity at call sites: `OrderPlaced(orderId = cmd.orderId, items = cmd.items)` reads like documentation.
-- Trailing lambda readiness: while the current example doesn’t need a full DSL, the service/controller code was structured so a tiny DSL (e.g., around order building) can be introduced naturally without breaking signatures.
+### Data classes: expressive, immutable messages
+- Where: `src/main/kotlin/com/example/springmonolith/Events.kt`
+- Why: Event payloads are pure data. Kotlin’s `data class` gives us value‑based `equals/hashCode`, `copy`, and a readable `toString` for free.
 
-Ideas we can layer in next (if the domain grows):
-- Extension functions for computed properties (e.g., `List<OrderItemDTO>.totalQuantity()`).
-- Context receivers for cross-cutting concerns (lightweight logging or tracing without cluttering function parameters).
-- Builders/DSLs for order creation in tests to produce highly readable fixtures.
+Example:
+```kotlin
+data class OrderPlaced(
+    val orderId: String,
+    val items: List<OrderItemDTO>
+)
+
+data class OrderItemDTO(val sku: String, val quantity: Int)
+```
+
+### Sealed classes: finite state, exhaustive handling
+- Where: `InventoryEvent` in `Events.kt`, `OrderStatus` in `order/OrderProcessManager.kt`
+- Why: A sealed hierarchy models a closed set of outcomes. The compiler can enforce exhaustive `when` handling, preventing “forgotten case” bugs.
+
+Example (conceptual handler):
+```kotlin
+fun handle(event: InventoryEvent): String = when (event) {
+    is InventoryEvent.InventoryReserved -> "ready to ship"
+    is InventoryEvent.InventoryFailed   -> "cancelled: ${event.reason}"
+}
+```
+
+### Named arguments and default values: self‑documenting calls
+- Where: `OrderService.placeOrder` and `OrderController.place` use named args; `InventoryService.publishInventoryFailed` shows a default value for `reason`.
+- Why: Named arguments read like documentation at the call site and reduce parameter ordering mistakes. Defaults cut boilerplate for common cases.
+
+Examples:
+```kotlin
+// Named args when publishing the event
+events.publishEvent(OrderPlaced(orderId = cmd.orderId, items = cmd.items))
+
+// Default parameter value (reason) keeps simple calls tidy
+fun publishInventoryFailed(orderId: String, reason: String = "Insufficient stock") { /* ... */ }
+```
+
+### Extension functions: add behavior without coupling
+- Why: Extensions let you keep DTOs simple while still offering convenient, testable helpers.
+
+Example (could live near tests):
+```kotlin
+fun List<OrderItemDTO>.totalQuantity(): Int = sumOf { it.quantity }
+```
+
+
+### Value classes (optional): type safety with zero runtime overhead
+- Why: Wrapping primitives such as `orderId` and `sku` prevents accidental mix‑ups.
+- Note: You can introduce them incrementally without touching call sites much.
+
+Example:
+```kotlin
+@JvmInline
+value class OrderId(val value: String)
+
+@JvmInline
+value class Sku(val value: String)
+```
+
+Bringing these features together gives us code that reads well, is harder to misuse, and stays aligned with strict module boundaries.
 
 ## Design notes: boundaries and eventual consistency
 

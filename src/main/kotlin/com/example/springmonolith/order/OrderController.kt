@@ -1,6 +1,7 @@
 package com.example.springmonolith.order
 
 import com.example.springmonolith.OrderItemDTO
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -18,16 +19,18 @@ class OrderController(private val orderService: OrderService) {
 
     /**
      * Demo endpoint to place an order and trigger an OrderPlaced event.
-     * Uses named parameters when calling the service.
+     * Uses a tiny trailing-lambda DSL (placeOrderCommand { ... }) to build the command
+     * and named parameters when calling the service. This demonstrates Kotlin builders/DSLs
+     * in production code without crossing module boundaries.
      */
     @PostMapping
-    fun place(@RequestBody request: PlaceOrderRequest): OrderAccepted {
-        return orderService.placeOrder(
+    fun place(@RequestBody request: PlaceOrderRequest): ResponseEntity<OrderResult> {
+        return ResponseEntity.ok(orderService.placeOrder(
             cmd = PlaceOrderCommand(
                 orderId = request.orderId,
                 items = request.items
             )
-        )
+        ))
     }
 }
 
