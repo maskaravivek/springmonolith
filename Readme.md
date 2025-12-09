@@ -6,6 +6,7 @@ This project demonstrates how to build a modular monolith using Spring Boot 3.5.
 
 - Java 17 or higher
 - Gradle (included via wrapper)
+- Kotlin
 
 ## Getting Started
 
